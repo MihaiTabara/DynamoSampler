@@ -8,11 +8,18 @@ package storage;
  * Class to describe how the metadata looks like
  */
 public class StorageNodeMetadataCapsule {
-	
-	private static int counter = 0;
-	
+		
+	/**
+	 * Identifier inherited from the storage node
+	 */
 	private int id;
+	/**
+	 * Port on which its corresponding Storage Node runs on
+	 */
 	private int port;
+	/**
+	 * Position handled in the ring 
+	 */
 	private int position;
 	
 	/**
@@ -21,7 +28,7 @@ public class StorageNodeMetadataCapsule {
 	 * @param position
 	 */
 	public StorageNodeMetadataCapsule(int id, int port, int position) {
-		this.id = ++counter;
+		this.id = id;
 		this.port = port;
 		this.position = position;
 	}
