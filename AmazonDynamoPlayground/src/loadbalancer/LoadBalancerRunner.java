@@ -6,9 +6,12 @@ package loadbalancer;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 
 import storage.StorageNodeMetadataCapsule;
+import environment.Constants;
+import environment.Mailman;
 import environment.TaskCapsule;
 
 /**
@@ -16,8 +19,8 @@ import environment.TaskCapsule;
  *
  */
 public class LoadBalancerRunner extends Thread {
-	private Socket communicationSocket;
 	private LoadBalancer loadBalancer;
+	private Socket communicationSocket;
 	
 	public LoadBalancerRunner(LoadBalancer loadBalancer, Socket clientSocket) {
 		this.loadBalancer = loadBalancer;
@@ -30,7 +33,7 @@ public class LoadBalancerRunner extends Thread {
 	@Override
 	public void run() {
 		try {
-			LoadBalancer.logger.info("I'm a runner - I'll check on what's this about ...");
+			LoadBalancer.logger.info("I'm a load balancer runner - I'll check on what's this about ...");
 			ObjectInputStream inputStream = new ObjectInputStream(communicationSocket.getInputStream());
 			
 			try {
@@ -51,17 +54,21 @@ public class LoadBalancerRunner extends Thread {
 			
 	}
 
-	private void analyzeContent(Object content) {
+	private void analyzeContent(Object content) throws UnknownHostException, IOException {
 		if (content instanceof StorageNodeMetadataCapsule) {
 			LoadBalancer.logger.info("A new Storage node requested to join the ring.");
 			StorageNodeMetadataCapsule nodeMetadata = (StorageNodeMetadataCapsule)content;
 			LoadBalancer.logger.info("Received this metadata: " + nodeMetadata.toString());
 			
 			this.loadBalancer.storageNodesMetadata.add(nodeMetadata);
+			LoadBalancer.logger.info("Added new node in the system.");
 			
-//			for (StorageNodeMetadataCapsule capsule : this.loadBalancer.storageNodesMetadata) {
-//				
-//			}
+			LoadBalancer.logger.info("Send updated-array of storage nodes with broadcast");
+			for (StorageNodeMetadataCapsule capsule : this.loadBalancer.storageNodesMetadata) {
+				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, capsule.getPort());
+				mailMan.composeMail(new TaskCapsule(this.loadBalancer.storageNodesMetadata));
+				mailMan.sendMail();
+			}
 		}
 		
 	}

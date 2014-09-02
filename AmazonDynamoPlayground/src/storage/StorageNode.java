@@ -6,6 +6,7 @@ package storage;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -33,6 +34,7 @@ public class StorageNode {
 	private static int counter = 0;
 	private StorageNodeMetadataCapsule metadata;
 	private ServerSocket nodeServerSocket;
+	public List<StorageNodeMetadataCapsule> allNodes;
 	
 	public static final Logger logger = Logger.getLogger(StorageNode.class.getName());
 	
@@ -63,23 +65,23 @@ public class StorageNode {
 		logger.addHandler(fh);
 		logger.setLevel(Level.INFO);
 		
-		logger.info("Send my metadata to load balancer ...");
-		Mailman storageNodeMailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
-		storageNodeMailMan.composeMail(new TaskCapsule(node.metadata));
-		storageNodeMailMan.sendMail();
+		logger.info("Send my metadata to load balancer.");
+		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
+		mailMan.composeMail(new TaskCapsule(node.metadata));
+		mailMan.sendMail();
 
-		// TODO start server to receive answers 
-//		while (true) {
-//			try {
-//				Socket clientSocket = node.nodeServerSocket.accept();
-//				logger.fine("Somebody tries to connect ...");
-//				LoadBalancerRunner actionRunner = new LoadBalancerRunner(clientSocket);
-//				actionRunner.start();
-//				
-//			} catch (IOException e) {
-//				logger.log(Level.SEVERE, e.getMessage(), e);
-//			}
-//		}
+		logger.info("Start listening on port for connections.");
+		while (true) {
+			try {
+				Socket clientSocket = node.nodeServerSocket.accept();
+				logger.fine("Somebody is sending me something");
+				StorageNodeRunner actionRunner = new StorageNodeRunner(node, clientSocket);
+				actionRunner.start();
+				
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
 	}
 
 }

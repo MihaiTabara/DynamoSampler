@@ -2,6 +2,15 @@
  * search for top 20 most purchased items alltime: [ s1, s2, s3 ... ]
  [X] add logging everywhere
  
+ Biography:
+ 
+ http://docs.oracle.com/javase/tutorial/networking/sockets/clientServer.html
+ http://docs.oracle.com/javase/7/docs/api/java/net/ServerSocket.html
+ http://www.tomkleinpeter.com/2008/03/17/programmers-toolbox-part-3-consistent-hashing/
+ http://en.wikipedia.org/wiki/Consistent_hashing
+ http://docs.oracle.com/javase/tutorial/essential/concurrency/runthread.html
+ http://www.ntu.edu.sg/home/ehchua/programming/java/JavaLogging.html
+ 
 
  
  

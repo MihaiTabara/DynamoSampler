@@ -4,6 +4,7 @@
 package environment;
 
 import java.io.Serializable;
+import java.util.List;
 
 import storage.StorageNodeMetadataCapsule;
 
@@ -20,6 +21,10 @@ public class TaskCapsule implements Serializable {
 		this.content = metadata;
 	}
 	
+	public TaskCapsule(List<StorageNodeMetadataCapsule> storageNodesMetadata) {
+		this.content = storageNodesMetadata;
+	}
+
 	public Object getContent() {
 		return content;
 	}
