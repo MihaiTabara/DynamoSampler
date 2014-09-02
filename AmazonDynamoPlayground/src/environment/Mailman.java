@@ -1,7 +1,7 @@
 /**
  * 
  */
-package storage;
+package environment;
 
 import environment.MailBox;
 import environment.TaskCapsule;
@@ -10,15 +10,14 @@ import environment.TaskCapsule;
  * @author mtabara
  *
  */
-public class StorageNodeMailman extends MailBox {
+public class Mailman extends MailBox {
 
 	/**
 	 * @param host
 	 * @param port
 	 */
-	public StorageNodeMailman(String host, int port) {
+	public Mailman(String host, int port) {
 		super(host, port);
-		// TODO Auto-generated constructor stub
 	}
 
 	/* (non-Javadoc)

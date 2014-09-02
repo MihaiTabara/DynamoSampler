@@ -24,10 +24,9 @@ public class LoadBalancer {
 
 	private static ServerSocket serverSocket;
 	private int port = Constants.LOAD_BALANCER_RUNNING_PORT;
-	private List<StorageNodeMetadataCapsule> storageNodesMetadata = new ArrayList<>();
+	public List<StorageNodeMetadataCapsule> storageNodesMetadata = new ArrayList<>();
 	
 	public static final Logger logger = Logger.getLogger(LoadBalancer.class.getName());
-	
 	
 	public LoadBalancer() {
 		try {
@@ -53,7 +52,7 @@ public class LoadBalancer {
 			try {
 				Socket clientSocket = serverSocket.accept();
 				logger.fine("Somebody tries to connect ...");
-				LoadBalancerRunner actionRunner = new LoadBalancerRunner(clientSocket);
+				LoadBalancerRunner actionRunner = new LoadBalancerRunner(loadBalancer, clientSocket);
 				actionRunner.start();
 				
 			} catch (IOException e) {

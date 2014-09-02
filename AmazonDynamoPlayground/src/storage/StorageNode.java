@@ -15,6 +15,7 @@ import javax.xml.crypto.NodeSetData;
 
 import environment.Constants;
 import environment.Hasher;
+import environment.Mailman;
 import environment.TaskCapsule;
 import loadbalancer.LoadBalancer;
 import loadbalancer.LoadBalancerRunner;
@@ -63,10 +64,11 @@ public class StorageNode {
 		logger.setLevel(Level.INFO);
 		
 		logger.info("Send my metadata to load balancer ...");
-		StorageNodeMailman storageNodeMailMan = new StorageNodeMailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
+		Mailman storageNodeMailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
 		storageNodeMailMan.composeMail(new TaskCapsule(node.metadata));
 		storageNodeMailMan.sendMail();
 
+		// TODO start server to receive answers 
 //		while (true) {
 //			try {
 //				Socket clientSocket = node.nodeServerSocket.accept();

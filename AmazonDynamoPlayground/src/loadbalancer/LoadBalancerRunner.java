@@ -17,8 +17,10 @@ import environment.TaskCapsule;
  */
 public class LoadBalancerRunner extends Thread {
 	private Socket communicationSocket;
+	private LoadBalancer loadBalancer;
 	
-	public LoadBalancerRunner(Socket clientSocket) {
+	public LoadBalancerRunner(LoadBalancer loadBalancer, Socket clientSocket) {
+		this.loadBalancer = loadBalancer;
 		this.communicationSocket = clientSocket;
 	}
 
@@ -34,11 +36,7 @@ public class LoadBalancerRunner extends Thread {
 			try {
 				TaskCapsule receivedTaskCapsule = (TaskCapsule)inputStream.readObject();
 				Object content = receivedTaskCapsule.getContent();
-				if (content instanceof StorageNodeMetadataCapsule) {
-					System.out.println("Victory, transfer succeeded!");
-					StorageNodeMetadataCapsule test = (StorageNodeMetadataCapsule)content;
-					System.out.println("Afisez " + test.toString());
-				}
+				analyzeContent(content);
 				
 			} catch (ClassNotFoundException e) {
 				LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
@@ -51,6 +49,21 @@ public class LoadBalancerRunner extends Thread {
 			LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 			
+	}
+
+	private void analyzeContent(Object content) {
+		if (content instanceof StorageNodeMetadataCapsule) {
+			LoadBalancer.logger.info("A new Storage node requested to join the ring.");
+			StorageNodeMetadataCapsule nodeMetadata = (StorageNodeMetadataCapsule)content;
+			LoadBalancer.logger.info("Received this metadata: " + nodeMetadata.toString());
+			
+			this.loadBalancer.storageNodesMetadata.add(nodeMetadata);
+			
+//			for (StorageNodeMetadataCapsule capsule : this.loadBalancer.storageNodesMetadata) {
+//				
+//			}
+		}
+		
 	}
 
 }
