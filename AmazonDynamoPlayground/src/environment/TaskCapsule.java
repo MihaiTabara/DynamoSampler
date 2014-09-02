@@ -5,33 +5,22 @@ package environment;
 
 import java.io.Serializable;
 
+import storage.StorageNodeMetadataCapsule;
+
 /**
  * @author mtabara
  *
  */
 public class TaskCapsule implements Serializable {
-
-	/**
-	 * @param message
-	 */
 	
-	private String flag;
-	
-	public TaskCapsule(String message) {
-		super();
-		setMessage(message);
-	}
+	private static final long serialVersionUID = 1L;	
+	private Object content;
 
-	private static final long serialVersionUID = 1L;
-
-	private String message;
-
-	public String getMessage() {
-		return message;
-	}
-
-	public void setMessage(String message) {
-		this.message = message;
+	public TaskCapsule(StorageNodeMetadataCapsule metadata) {
+		this.content = metadata;
 	}
 	
+	public Object getContent() {
+		return content;
+	}
 }

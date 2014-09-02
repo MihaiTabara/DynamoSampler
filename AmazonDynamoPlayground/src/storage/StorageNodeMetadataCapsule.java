@@ -3,12 +3,15 @@
  */
 package storage;
 
+import java.io.Serializable;
+
 /**
  * @author mtabara
  * Class to describe how the metadata looks like
  */
-public class StorageNodeMetadataCapsule {
-		
+public class StorageNodeMetadataCapsule implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 	/**
 	 * Identifier inherited from the storage node
 	 */

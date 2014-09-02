@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import storage.StorageNodeMetadataCapsule;
+import environment.Constants;
 
 /**
  * @author mtabara
@@ -22,7 +23,7 @@ import storage.StorageNodeMetadataCapsule;
 public class LoadBalancer {
 
 	private static ServerSocket serverSocket;
-	private final int port = 5000;
+	private int port = Constants.LOAD_BALANCER_RUNNING_PORT;
 	private List<StorageNodeMetadataCapsule> storageNodesMetadata = new ArrayList<>();
 	
 	public static final Logger logger = Logger.getLogger(LoadBalancer.class.getName());

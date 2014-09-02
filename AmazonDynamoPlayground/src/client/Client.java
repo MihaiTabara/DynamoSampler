@@ -25,7 +25,7 @@ public class Client {
 		try {
 			clientSocket = new Socket("localhost", 5000);
 			output = new ObjectOutputStream(clientSocket.getOutputStream());
-			output.writeObject(new TaskCapsule(new String("Message test from client")));
+			//output.writeObject(new TaskCapsule(new String("Message test from client")));
 			output.close();
 			clientSocket.close();
 			

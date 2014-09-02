@@ -16,16 +16,26 @@ public final class Constants {
 	/**
 	 * Size of preference list for any key
 	 */
-	public static final int Dynamo_N = 3;
+	public static final int DYNAMO_N = 3;
 
 	/**
 	 * Minimum no. of reads to participate in a successful read operation
 	 */
-	public static final int Dynamo_R = 2;
+	public static final int DYNAMO_R = 2;
 	
 	/**
 	 * Minimum no. of writes to participate in a successful write operation
 	 */
-	public static final int Dynamo_W = 2;
+	public static final int DYNAMO_W = 2;
+	
+	/**
+	 * The port where load balancer runs
+	 */
+	public static final int LOAD_BALANCER_RUNNING_PORT = 5000;
+	
+	/**
+	 * The generic host to use - localhost
+	 */
+	public static final String GENERIC_HOST = "localhost";
 	
 }

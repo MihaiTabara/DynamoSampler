@@ -13,7 +13,9 @@ import java.util.logging.Logger;
 
 import javax.xml.crypto.NodeSetData;
 
+import environment.Constants;
 import environment.Hasher;
+import environment.TaskCapsule;
 import loadbalancer.LoadBalancer;
 import loadbalancer.LoadBalancerRunner;
 
@@ -59,7 +61,11 @@ public class StorageNode {
 		Handler fh = new FileHandler("%h/storage_node" + node.metadata.getId() + ".log", true);
 		logger.addHandler(fh);
 		logger.setLevel(Level.INFO);
-		logger.info(node.metadata.toString());
+		
+		logger.info("Send my metadata to load balancer ...");
+		StorageNodeMailman storageNodeMailMan = new StorageNodeMailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
+		storageNodeMailMan.composeMail(new TaskCapsule(node.metadata));
+		storageNodeMailMan.sendMail();
 
 //		while (true) {
 //			try {

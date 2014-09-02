@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.net.Socket;
 import java.util.logging.Level;
 
+import storage.StorageNodeMetadataCapsule;
 import environment.TaskCapsule;
 
 /**
@@ -32,7 +33,12 @@ public class LoadBalancerRunner extends Thread {
 			
 			try {
 				TaskCapsule receivedTaskCapsule = (TaskCapsule)inputStream.readObject();
-				analyzeTaskCapsule(receivedTaskCapsule);
+				Object content = receivedTaskCapsule.getContent();
+				if (content instanceof StorageNodeMetadataCapsule) {
+					System.out.println("Victory, transfer succeeded!");
+					StorageNodeMetadataCapsule test = (StorageNodeMetadataCapsule)content;
+					System.out.println("Afisez " + test.toString());
+				}
 				
 			} catch (ClassNotFoundException e) {
 				LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
@@ -45,10 +51,6 @@ public class LoadBalancerRunner extends Thread {
 			LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 			
-	}
-
-	private void analyzeTaskCapsule(TaskCapsule receivedTaskCapsule) {
-		
 	}
 
 }
