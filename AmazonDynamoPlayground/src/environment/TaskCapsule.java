@@ -14,6 +14,9 @@ public class TaskCapsule implements Serializable {
 	/**
 	 * @param message
 	 */
+	
+	private String flag;
+	
 	public TaskCapsule(String message) {
 		super();
 		setMessage(message);

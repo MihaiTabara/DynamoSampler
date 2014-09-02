@@ -14,9 +14,14 @@ public class StorageNodeMetadataCapsule {
 	 */
 	private int id;
 	/**
+	 * The (domestic) name of the storage name
+	 */
+	private String nodeName;
+	/**
 	 * Port on which its corresponding Storage Node runs on
 	 */
 	private int port;
+	
 	/**
 	 * Position handled in the ring 
 	 */
@@ -31,6 +36,7 @@ public class StorageNodeMetadataCapsule {
 		this.id = id;
 		this.port = port;
 		this.position = position;
+		this.nodeName = "Storage node " + id;
 	}
 
 	/**
@@ -40,10 +46,10 @@ public class StorageNodeMetadataCapsule {
 		return id;
 	}
 	/**
-	 * @param id the id to set
+	 * @return the nodeName
 	 */
-	public void setId(int id) {
-		this.id = id;
+	public String getNodeName() {
+		return nodeName;
 	}
 	/**
 	 * @return the port
@@ -52,17 +58,31 @@ public class StorageNodeMetadataCapsule {
 		return port;
 	}
 	/**
-	 * @param port the port to set
-	 */
-	public void setPort(int port) {
-		this.port = port;
-	}
-	/**
 	 * @return the position
 	 */
 	public int getPosition() {
 		return position;
 	}
+	/**
+	 * @param id the id to set
+	 */
+	public void setId(int id) {
+		this.id = id;
+	}
+	/**
+	 * @param nodeName the nodeName to set
+	 */
+	public void setNodeName(String nodeName) {
+		this.nodeName = nodeName;
+	}
+
+	/**
+	 * @param port the port to set
+	 */
+	public void setPort(int port) {
+		this.port = port;
+	}
+
 	/**
 	 * @param position the position to set
 	 */
@@ -75,8 +95,8 @@ public class StorageNodeMetadataCapsule {
 	 */
 	@Override
 	public String toString() {
-		return "StorageNodeMetadataCapsule [id=" + id + ", port=" + port
-				+ ", position=" + position + "]";
+		return "StorageNodeMetadataCapsule [id=" + id + ", nodeName="
+				+ nodeName + ", port=" + port + ", position=" + position + "]";
 	}
 	
 }

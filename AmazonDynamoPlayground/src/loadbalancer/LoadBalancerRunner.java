@@ -31,8 +31,8 @@ public class LoadBalancerRunner extends Thread {
 			ObjectInputStream inputStream = new ObjectInputStream(communicationSocket.getInputStream());
 			
 			try {
-				TaskCapsule ret = (TaskCapsule)inputStream.readObject();
-				LoadBalancer.logger.info(ret.getMessage());
+				TaskCapsule receivedTaskCapsule = (TaskCapsule)inputStream.readObject();
+				analyzeTaskCapsule(receivedTaskCapsule);
 				
 			} catch (ClassNotFoundException e) {
 				LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
@@ -45,6 +45,10 @@ public class LoadBalancerRunner extends Thread {
 			LoadBalancer.logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 			
+	}
+
+	private void analyzeTaskCapsule(TaskCapsule receivedTaskCapsule) {
+		
 	}
 
 }
