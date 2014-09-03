@@ -72,7 +72,13 @@ public class LoadBalancerRunner extends Thread {
 			}
 		}
 		else if (content instanceof Command) {
-			System.out.println("Muhaha, am ajuns cu bine in load balancer");
+			Command commandContent = (Command)content;
+			StorageNodeMetadataCapsule randomRecipient = this.loadBalancer.getRandomStorageNode();
+			LoadBalancer.logger.info("Shuffled storage nodes and had chosen: " + randomRecipient.toString());
+			
+			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, randomRecipient.getPort());
+			mailMan.composeMail(new TaskCapsule(commandContent));
+			mailMan.sendMail();
 		}
 		
 	}

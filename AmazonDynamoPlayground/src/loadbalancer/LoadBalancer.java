@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -36,6 +37,12 @@ public class LoadBalancer {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 	}
+	
+	public StorageNodeMetadataCapsule getRandomStorageNode() {
+		Collections.shuffle(this.storageNodesMetadata);
+		return this.storageNodesMetadata.get(0);
+	}
+	
 	/**
 	 * @param args
 	 * @throws IOException 

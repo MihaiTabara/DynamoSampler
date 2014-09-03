@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.logging.Level;
 
 import loadbalancer.LoadBalancer;
+import environment.Command;
 import environment.Constants;
 import environment.Mailman;
 import environment.TaskCapsule;
@@ -70,9 +71,11 @@ public class StorageNodeRunner extends Thread {
 				}
 			});
 			
-			StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());
-			
-			
+			StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());		
+		}
+		else if (content instanceof Command) {
+			System.out.println("Received a forwarded Command from load balancer/other node");
+			System.out.println(((Command)content).getMessage());
 		}
 	}
 	
