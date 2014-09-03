@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.logging.Level;
 
 import storage.StorageNodeMetadataCapsule;
+import environment.Command;
 import environment.Constants;
 import environment.Mailman;
 import environment.TaskCapsule;
@@ -69,6 +70,9 @@ public class LoadBalancerRunner extends Thread {
 				mailMan.composeMail(new TaskCapsule(this.loadBalancer.storageNodesMetadata));
 				mailMan.sendMail();
 			}
+		}
+		else if (content instanceof Command) {
+			System.out.println("Muhaha, am ajuns cu bine in load balancer");
 		}
 		
 	}

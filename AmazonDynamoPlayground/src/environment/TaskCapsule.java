@@ -25,6 +25,10 @@ public class TaskCapsule implements Serializable {
 		this.content = storageNodesMetadata;
 	}
 
+	public TaskCapsule(Command command) {
+		this.content = command;
+	}
+
 	public Object getContent() {
 		return content;
 	}
