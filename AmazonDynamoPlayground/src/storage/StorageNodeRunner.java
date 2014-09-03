@@ -92,7 +92,7 @@ public class StorageNodeRunner extends Thread {
 			}
 			
 			if (patternityTest) {
-				System.out.println("Eu ma ocup de ea motherfuckers!");
+				// TODO - handle the received item
 			}
 			else {
 				StorageNodeMetadataCapsule coordinator = prefList.get(0);
