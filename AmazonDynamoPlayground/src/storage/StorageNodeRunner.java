@@ -49,6 +49,8 @@ public class StorageNodeRunner extends Thread {
 				
 			} catch (ClassNotFoundException e) {
 				StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
+			} catch (Exception e) {
+				StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
 			}
 			
 			inputStream.close();
@@ -60,7 +62,7 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
-	private void analyzeContent(Object content) {
+	private void analyzeContent(Object content) throws Exception {
 		if (content instanceof ArrayList) {
 			StorageNode.logger.info("Load balancer sent a broadcast!");
 			this.node.allNodes = (ArrayList<StorageNodeMetadataCapsule>)content;
@@ -74,12 +76,10 @@ public class StorageNodeRunner extends Thread {
 			StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());		
 		}
 		else if (content instanceof Command) {
-			System.out.println("Received a forwarded Command from load balancer/other node");
-			System.out.println(((Command)content).getMessage());
+			StorageNode.logger.info("Received a forwarded Command from load balancer/other node");
+			String key = ((Command)content).getMessage();
+			List <StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
+			StorageNode.logger.info("Pref list --> " + prefList.toString());
 		}
 	}
-	
-	
-	
-
 }

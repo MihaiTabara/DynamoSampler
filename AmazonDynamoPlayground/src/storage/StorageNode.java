@@ -51,21 +51,46 @@ public class StorageNode {
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
-		
-		System.out.println("Intru aici!");
+	
 		this.metadata = new StorageNodeMetadataCapsule(localName, nodeServerSocket.getLocalPort(), localPosition);
-		System.out.println("==>" + this.metadata.toString());
+		logger.info("==>" + this.metadata.toString());
+	}
+	
+	public List<StorageNodeMetadataCapsule> getPreferenceListForAKey(String key) throws Exception {
+		List<StorageNodeMetadataCapsule> preferenceList = new ArrayList<>();
+		int keyRingPosition = Hasher.getRingPosition(key, false);
+		
+		int counter = 0;
+		int foundCoordinatorPos = -1;
+		for (StorageNodeMetadataCapsule s : this.allNodes) {
+			if (s.getPosition() >= keyRingPosition) {
+				foundCoordinatorPos = counter;
+				break;
+			}
+			counter++;
+		}
+		if (foundCoordinatorPos == -1) {
+			foundCoordinatorPos = 0;
+		}
+			
+		preferenceList.add(this.allNodes.get(foundCoordinatorPos));
+		for (int i = 1; i < Constants.DYNAMO_N; i++) {
+			int nexNodeIndex = ((foundCoordinatorPos + i) % this.allNodes.size());
+			preferenceList.add(this.allNodes.get(nexNodeIndex));
+		}
+		
+		return preferenceList;
 	}
 	
 	public static void main(String[] args) throws SecurityException, IOException {
 		StorageNode node = new StorageNode();
-		System.out.println("XXX: " + node.toString());
+		logger.info("Data about myself(storage node): " + node.toString());
 		
 		Handler fh = new FileHandler("%h/storage_node" + node.metadata.getNodeName() + ".log", true);
 		logger.addHandler(fh);
 		logger.setLevel(Level.INFO);
 		
-		System.out.println("Send my metadata to load balancer.");
+		logger.info("Send my metadata to load balancer.");
 		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
 		mailMan.composeMail(new TaskCapsule(node.metadata));
 		mailMan.sendMail();
