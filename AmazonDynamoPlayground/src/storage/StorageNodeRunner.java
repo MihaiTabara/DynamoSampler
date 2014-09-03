@@ -76,10 +76,33 @@ public class StorageNodeRunner extends Thread {
 			StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());		
 		}
 		else if (content instanceof Command) {
-			StorageNode.logger.info("Received a forwarded Command from load balancer/other node");
-			String key = ((Command)content).getMessage();
+			StorageNode.logger.info("Received a (forwarded) Command from (load balancer) another node");
+			
+			Command commandContent = (Command)content;
+			String key = commandContent.getMessage();
+			
 			List <StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
-			StorageNode.logger.info("Pref list --> " + prefList.toString());
+			
+			boolean patternityTest = false;
+			for (StorageNodeMetadataCapsule s : prefList) {
+				if (s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
+					patternityTest = true;
+					break;
+				}
+			}
+			
+			if (patternityTest) {
+				System.out.println("Eu ma ocup de ea motherfuckers!");
+			}
+			else {
+				StorageNodeMetadataCapsule coordinator = prefList.get(0);
+				
+				StorageNode.logger.info("I will forward it to its right owner - the coordinator " + coordinator.toString());
+				
+				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
+				mailMan.composeMail(new TaskCapsule(commandContent));
+				mailMan.sendMail();
+			}
 		}
 	}
 }

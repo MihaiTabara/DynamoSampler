@@ -44,7 +44,7 @@ public class StorageNode {
 		}
 
 		int localPosition = 0;
-		String localName = "StorageNode name: " + Utilities.getRandomString();
+		String localName = Utilities.getRandomString();
 		
 		try {
 			localPosition = Hasher.getRingPosition(localName, true);
@@ -56,6 +56,20 @@ public class StorageNode {
 		logger.info("==>" + this.metadata.toString());
 	}
 	
+	/**
+	 * @return the metadata
+	 */
+	public StorageNodeMetadataCapsule getMetadata() {
+		return metadata;
+	}
+
+	/**
+	 * @param metadata the metadata to set
+	 */
+	public void setMetadata(StorageNodeMetadataCapsule metadata) {
+		this.metadata = metadata;
+	}
+
 	public List<StorageNodeMetadataCapsule> getPreferenceListForAKey(String key) throws Exception {
 		List<StorageNodeMetadataCapsule> preferenceList = new ArrayList<>();
 		int keyRingPosition = Hasher.getRingPosition(key, false);
@@ -79,6 +93,7 @@ public class StorageNode {
 			preferenceList.add(this.allNodes.get(nexNodeIndex));
 		}
 		
+		logger.info("The key " + key + " has ring position" + keyRingPosition + " with preflist " + preferenceList.toString());
 		return preferenceList;
 	}
 	

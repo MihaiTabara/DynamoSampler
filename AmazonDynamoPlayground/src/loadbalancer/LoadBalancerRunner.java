@@ -76,10 +76,11 @@ public class LoadBalancerRunner extends Thread {
 			StorageNodeMetadataCapsule randomRecipient = this.loadBalancer.getRandomStorageNode();
 			LoadBalancer.logger.info("Shuffled storage nodes and had chosen: " + randomRecipient.toString());
 			
-			LoadBalancer.logger.info("Forward Command received to " + randomRecipient.toString());
+			
 			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, randomRecipient.getPort());
 			mailMan.composeMail(new TaskCapsule(commandContent));
 			mailMan.sendMail();
+			LoadBalancer.logger.info("Just forwarded the job to " + randomRecipient.toString());
 		}
 		
 	}
