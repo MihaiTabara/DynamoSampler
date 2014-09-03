@@ -92,7 +92,7 @@ public class StorageNodeRunner extends Thread {
 			}
 			
 			if (patternityTest) {
-				// TODO - handle the received item
+				// TODO - if part of the preference list - coordinate and do the job
 			}
 			else {
 				StorageNodeMetadataCapsule coordinator = prefList.get(0);
