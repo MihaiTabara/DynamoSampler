@@ -17,6 +17,7 @@ import environment.Constants;
 import environment.Hasher;
 import environment.Mailman;
 import environment.TaskCapsule;
+import environment.Utilities;
 
 /**
  * @author mtabara
@@ -28,7 +29,6 @@ public class StorageNode {
 	 * @param args
 	 */
 	
-	private static int counter = 0;
 	private StorageNodeMetadataCapsule metadata;
 	private ServerSocket nodeServerSocket;
 	public List<StorageNodeMetadataCapsule> allNodes;
@@ -43,51 +43,43 @@ public class StorageNode {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 
-		int localId = ++counter;
 		int localPosition = 0;
+		String localName = "StorageNode name: " + Utilities.getRandomString();
 		
 		try {
-			localPosition = Hasher.getRingPosition("Storage node with id" + localId, true);
+			localPosition = Hasher.getRingPosition(localName, true);
 		} catch (Exception e) {
 			logger.log(Level.SEVERE, e.getMessage(), e);
 		}
 		
 		System.out.println("Intru aici!");
-		this.metadata = new StorageNodeMetadataCapsule(localId, nodeServerSocket.getLocalPort(), localPosition);
+		this.metadata = new StorageNodeMetadataCapsule(localName, nodeServerSocket.getLocalPort(), localPosition);
 		System.out.println("==>" + this.metadata.toString());
 	}
 	
 	public static void main(String[] args) throws SecurityException, IOException {
-		List<StorageNode> nodes = new ArrayList<>();
-		for (int i = 0; i < 3; i++) {
-			StorageNode node = new StorageNode();
-			nodes.add(node);
-		}
+		StorageNode node = new StorageNode();
+		System.out.println("XXX: " + node.toString());
 		
-		System.out.println("XXX: " + nodes.toString());
+		Handler fh = new FileHandler("%h/storage_node" + node.metadata.getNodeName() + ".log", true);
+		logger.addHandler(fh);
+		logger.setLevel(Level.INFO);
 		
-		for (StorageNode node : nodes) {
-			System.out.println("Intru in for aici!");
-			Handler fh = new FileHandler("%h/storage_node" + node.metadata.getId() + ".log", true);
-			logger.addHandler(fh);
-			logger.setLevel(Level.INFO);
-			
-			System.out.println("Send my metadata to load balancer.");
-			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
-			mailMan.composeMail(new TaskCapsule(node.metadata));
-			mailMan.sendMail();
-	
-			logger.info("Start listening on port for connections.");
-			while (true) {
-				try {
-					Socket clientSocket = node.nodeServerSocket.accept();
-					logger.fine("Somebody is sending me something");
-					StorageNodeRunner actionRunner = new StorageNodeRunner(node, clientSocket);
-					actionRunner.start();
-					
-				} catch (IOException e) {
-					logger.log(Level.SEVERE, e.getMessage(), e);
-				}
+		System.out.println("Send my metadata to load balancer.");
+		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
+		mailMan.composeMail(new TaskCapsule(node.metadata));
+		mailMan.sendMail();
+
+		logger.info("Start listening on port for connections.");
+		while (true) {
+			try {
+				Socket clientSocket = node.nodeServerSocket.accept();
+				logger.fine("Somebody is sending me something");
+				StorageNodeRunner actionRunner = new StorageNodeRunner(node, clientSocket);
+				actionRunner.start();
+				
+			} catch (IOException e) {
+				logger.log(Level.SEVERE, e.getMessage(), e);
 			}
 		}
 	}

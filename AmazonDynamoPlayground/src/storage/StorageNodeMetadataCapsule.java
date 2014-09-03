@@ -12,10 +12,7 @@ import java.io.Serializable;
 public class StorageNodeMetadataCapsule implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	/**
-	 * Identifier inherited from the storage node
-	 */
-	private int id;
+
 	/**
 	 * The (domestic) name of the storage name
 	 */
@@ -31,23 +28,16 @@ public class StorageNodeMetadataCapsule implements Serializable{
 	private int position;
 	
 	/**
-	 * @param id
+	 * @param nodeName
 	 * @param port
 	 * @param position
 	 */
-	public StorageNodeMetadataCapsule(int id, int port, int position) {
-		this.id = id;
+	public StorageNodeMetadataCapsule(String nodeName, int port, int position) {
+		this.nodeName = nodeName;
 		this.port = port;
 		this.position = position;
-		this.nodeName = "Storage node " + id;
 	}
 
-	/**
-	 * @return the id
-	 */
-	public int getId() {
-		return id;
-	}
 	/**
 	 * @return the nodeName
 	 */
@@ -65,12 +55,6 @@ public class StorageNodeMetadataCapsule implements Serializable{
 	 */
 	public int getPosition() {
 		return position;
-	}
-	/**
-	 * @param id the id to set
-	 */
-	public void setId(int id) {
-		this.id = id;
 	}
 	/**
 	 * @param nodeName the nodeName to set
@@ -98,8 +82,9 @@ public class StorageNodeMetadataCapsule implements Serializable{
 	 */
 	@Override
 	public String toString() {
-		return "StorageNodeMetadataCapsule [id=" + id + ", nodeName="
-				+ nodeName + ", port=" + port + ", position=" + position + "]";
+		return "StorageNodeMetadataCapsule [nodeName=" + nodeName + ", port="
+				+ port + ", position=" + position + "]";
 	}
+
 	
 }
