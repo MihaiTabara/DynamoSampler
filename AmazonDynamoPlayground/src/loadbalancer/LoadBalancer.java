@@ -67,8 +67,6 @@ public class LoadBalancer {
 			}
 		}
 		
-//		fh.flush();
-//		fh.close();
 	}
 
 }

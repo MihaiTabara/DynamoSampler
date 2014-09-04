@@ -29,6 +29,14 @@ public class TaskCapsule implements Serializable {
 		this.content = command;
 	}
 
+	public TaskCapsule(KeyVersionRequest keyVersionRequest) {
+		this.content = keyVersionRequest;
+	}
+
+	public TaskCapsule(KeyVersionReply keyVersionReply) {
+		this.content = keyVersionReply;
+	}
+
 	public Object getContent() {
 		return content;
 	}

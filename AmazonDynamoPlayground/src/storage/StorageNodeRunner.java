@@ -15,6 +15,8 @@ import java.util.logging.Level;
 import loadbalancer.LoadBalancer;
 import environment.Command;
 import environment.Constants;
+import environment.KeyVersionReply;
+import environment.KeyVersionRequest;
 import environment.Mailman;
 import environment.TaskCapsule;
 
@@ -25,6 +27,9 @@ import environment.TaskCapsule;
 public class StorageNodeRunner extends Thread {
 	private StorageNode node;
 	private Socket communicationSocket;
+	private static final Object locker = new Object();
+	private static int noOfReplicasToReceive;
+	private static List<String> requestedVersions = new ArrayList<>();
 	
 	
 	public StorageNodeRunner(StorageNode node, Socket clientSocket) {
@@ -82,16 +87,73 @@ public class StorageNodeRunner extends Thread {
 			String key = commandContent.getMessage();
 			
 			if (this.node.patternityTest(key)) {
-				// TODO - if part of the preference list - coordinate and do the job
+				StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
+				requestedVersions.clear();
+				requestedVersions.add(new String("mock"));
+				
+				List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
+				for (StorageNodeMetadataCapsule s : prefList) {
+					if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
+						KeyVersionRequest k = new KeyVersionRequest(key, this.node.getMetadata().getPort(), s.getPort());
+						Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
+						mailMan.composeMail(new TaskCapsule(k));
+						mailMan.sendMail();
+					}
+				}
+				
+				synchronized (locker) {
+					try {
+						noOfReplicasToReceive = Constants.DYNAMO_R;
+						locker.wait();
+					} catch (InterruptedException e) {
+						StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
+					}
+				}
+				
+				System.out.println("+++++");
+				System.out.println("#<3# " + requestedVersions.toString());
+				System.out.println("+++++");
 			}
 			else {
+				StorageNode.logger.info("I will forward it to its right owner.");
 				StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
 				
-				StorageNode.logger.info("I will forward it to its right owner - the coordinator " + coordinator.toString());
 				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
 				mailMan.composeMail(new TaskCapsule(commandContent));
 				mailMan.sendMail();
+				
+				StorageNode.logger.info("Task forwarded to " + coordinator.toString());
 			}
+		}
+		else if (content instanceof KeyVersionRequest) {
+			KeyVersionRequest req = (KeyVersionRequest)content;
+			StorageNode.logger.info("Received a KeyVersionRequest: " + req.toString());
+			
+			String key = req.getKey();
+			String reply = key + "gigelcostel";
+			
+			KeyVersionReply k = new KeyVersionReply(reply, this.node.getMetadata().getPort(), req.getSourcePort());
+			
+			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, req.getSourcePort());
+			mailMan.composeMail(new TaskCapsule(k));
+			mailMan.sendMail();
+			
+			StorageNode.logger.info("Replied a KeyVersionReply to port " + req.getSourcePort());
+		}
+		else if (content instanceof KeyVersionReply) {
+			KeyVersionReply receivedAnswer = (KeyVersionReply)content;
+			StorageNode.logger.info("Received a KeyVersionReply " + receivedAnswer.toString() + " from port" + receivedAnswer.getSourcePort());
+			
+			requestedVersions.add(receivedAnswer.getReply());
+			
+			synchronized (locker) {
+				noOfReplicasToReceive--;
+				if (noOfReplicasToReceive == 0) {
+					locker.notify();
+				}
+			}
+			
+			
 		}
 	}
 }
