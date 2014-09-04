@@ -97,6 +97,23 @@ public class StorageNode {
 		return preferenceList;
 	}
 	
+	public StorageNodeMetadataCapsule getKeyCoordinator(String key) throws Exception {
+		List <StorageNodeMetadataCapsule> prefList = this.getPreferenceListForAKey(key);
+		return prefList.get(0);
+	}
+
+	public boolean patternityTest(String key) throws Exception {
+		List <StorageNodeMetadataCapsule> prefList = this.getPreferenceListForAKey(key);
+		
+		for (StorageNodeMetadataCapsule s : prefList) {
+			if (s.getNodeName().equals(this.getMetadata().getNodeName())) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
 	public static void main(String[] args) throws SecurityException, IOException {
 		StorageNode node = new StorageNode();
 		logger.info("Data about myself(storage node): " + node.toString());

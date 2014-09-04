@@ -81,24 +81,13 @@ public class StorageNodeRunner extends Thread {
 			Command commandContent = (Command)content;
 			String key = commandContent.getMessage();
 			
-			List <StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
-			
-			boolean patternityTest = false;
-			for (StorageNodeMetadataCapsule s : prefList) {
-				if (s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
-					patternityTest = true;
-					break;
-				}
-			}
-			
-			if (patternityTest) {
+			if (this.node.patternityTest(key)) {
 				// TODO - if part of the preference list - coordinate and do the job
 			}
 			else {
-				StorageNodeMetadataCapsule coordinator = prefList.get(0);
+				StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
 				
 				StorageNode.logger.info("I will forward it to its right owner - the coordinator " + coordinator.toString());
-				
 				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
 				mailMan.composeMail(new TaskCapsule(commandContent));
 				mailMan.sendMail();
