@@ -11,6 +11,7 @@ import environment.Command;
 import environment.Constants;
 import environment.Mailman;
 import environment.TaskCapsule;
+import environment.Command.Type;
 
 /**
  * @author mtabara
@@ -24,10 +25,14 @@ public class Client {
 	public static void main(String[] args) {
 		Client client = new Client();
 		try {
-			System.out.println("Send greetings to load balancer.");
+			
+			System.out.println("Sending my first GET key over the network!");
+			
+			Command command = new Command(Type.GET, "firstKeyToSend");
+			command.setCoordinates(0, Constants.LOAD_BALANCER_RUNNING_PORT);
 			
 			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
-			mailMan.composeMail(new TaskCapsule(new Command("Greetings from client!")));
+			mailMan.composeMail(new TaskCapsule(command));
 			mailMan.sendMail();
 			
 		} catch (IOException e) {

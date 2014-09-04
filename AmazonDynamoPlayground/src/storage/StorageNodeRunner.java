@@ -15,6 +15,7 @@ import java.util.logging.Level;
 
 import loadbalancer.LoadBalancer;
 import environment.Command;
+import environment.Command.Type;
 import environment.Constants;
 import environment.KeyVersionReply;
 import environment.KeyVersionRequest;
@@ -119,47 +120,76 @@ public class StorageNodeRunner extends Thread {
 	private void processCommand(Object content) throws UnknownHostException, IOException, Exception {
 		StorageNode.logger.info("Received a (forwarded) Command from (load balancer) another node");
 		
-		Command commandContent = (Command)content;
-		String key = commandContent.getMessage();
+		Command command = (Command)content;
+		String key = command.getkey();
 		
 		if (this.node.patternityTest(key)) {
-			StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
-			requestedVersions.clear();
-			requestedVersions.add(new String("mock"));
-			
-			List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
-			for (StorageNodeMetadataCapsule s : prefList) {
-				if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
-					KeyVersionRequest k = new KeyVersionRequest(key, this.node.getMetadata().getPort(), s.getPort());
-					Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
-					mailMan.composeMail(new TaskCapsule(k));
-					mailMan.sendMail();
-				}
-			}
-			
-			synchronized (locker) {
-				try {
-					noOfReplicasToReceive = Constants.DYNAMO_R;
-					locker.wait();
-				} catch (InterruptedException e) {
-					StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
-				}
-			}
-			
-			System.out.println("+++++");
-			System.out.println("#<3# " + requestedVersions.toString());
-			System.out.println("+++++");
+			handleCommand(command, key);
 		}
 		else {
-			StorageNode.logger.info("I will forward it to its right owner.");
-			StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
-			
-			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
-			mailMan.composeMail(new TaskCapsule(commandContent));
-			mailMan.sendMail();
-			
-			StorageNode.logger.info("Task forwarded to " + coordinator.toString());
+			forwardCapsule(command, key);
 		}	
+	}
+
+
+	private void forwardCapsule(Command command, String key) throws Exception {
+		StorageNode.logger.info("I will forward it to its right owner.");
+		StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
+		
+		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
+		mailMan.composeMail(new TaskCapsule(command));
+		mailMan.sendMail();
+		
+		StorageNode.logger.info("Task forwarded to " + coordinator.toString());
+	}
+
+
+	private void handleCommand(Command command, String key) throws Exception {
+		Type cmdType = command.getType();
+		
+		if (cmdType == Type.GET) {
+			processGETCommand(command, key);
+		}
+		else if (cmdType == Type.PUT) {
+			processPUTCommand(command, key);
+		}
+	}
+
+
+	private void processPUTCommand(Command command, String key) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+	private void processGETCommand(Command command, String key) throws Exception {
+		StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
+		requestedVersions.clear();
+		requestedVersions.add(new String("mock"));
+		
+		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
+		for (StorageNodeMetadataCapsule s : prefList) {
+			if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
+				KeyVersionRequest k = new KeyVersionRequest(key, this.node.getMetadata().getPort(), s.getPort());
+				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
+				mailMan.composeMail(new TaskCapsule(k));
+				mailMan.sendMail();
+			}
+		}
+		
+		synchronized (locker) {
+			try {
+				noOfReplicasToReceive = Constants.DYNAMO_R;
+				locker.wait();
+			} catch (InterruptedException e) {
+				StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
+			}
+		}
+		
+		System.out.println("+++++");
+		System.out.println("#<3# " + requestedVersions.toString());
+		System.out.println("+++++");
+		
 	}
 
 
