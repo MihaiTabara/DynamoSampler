@@ -12,7 +12,7 @@ import java.io.Serializable;
 public class KeyVersionReply implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
-	private String reply;
+	private VectorClock reply;
 	private int sourcePort;
 	private int destinationPort;
 	
@@ -21,8 +21,8 @@ public class KeyVersionReply implements Serializable {
 	 * @param sourcePort
 	 * @param destinationPort
 	 */
-	public KeyVersionReply(String reply, int sourcePort, int destinationPort) {
-		this.reply = reply;
+	public KeyVersionReply(VectorClock reply2, int sourcePort, int destinationPort) {
+		this.reply = reply2;
 		this.sourcePort = sourcePort;
 		this.destinationPort = destinationPort;
 	}
@@ -30,14 +30,14 @@ public class KeyVersionReply implements Serializable {
 	/**
 	 * @return the reply
 	 */
-	public String getReply() {
+	public VectorClock getReply() {
 		return reply;
 	}
 
 	/**
 	 * @param reply the reply to set
 	 */
-	public void setReply(String reply) {
+	public void setReply(VectorClock reply) {
 		this.reply = reply;
 	}
 
@@ -74,7 +74,7 @@ public class KeyVersionReply implements Serializable {
 	 */
 	@Override
 	public String toString() {
-		return "KeyVersionReply [reply=" + reply + ", sourcePort=" + sourcePort
+		return "KeyVersionReply [reply=" + reply.toString() + ", sourcePort=" + sourcePort
 				+ ", destinationPort=" + destinationPort + "]";
 	}
 	

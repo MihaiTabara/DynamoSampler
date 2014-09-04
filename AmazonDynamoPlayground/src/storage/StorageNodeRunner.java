@@ -10,6 +10,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -17,10 +18,12 @@ import loadbalancer.LoadBalancer;
 import environment.Command;
 import environment.Command.Type;
 import environment.Constants;
+import environment.Hasher;
 import environment.KeyVersionReply;
 import environment.KeyVersionRequest;
 import environment.Mailman;
 import environment.TaskCapsule;
+import environment.VectorClock;
 
 /**
  * @author mtabara
@@ -31,7 +34,9 @@ public class StorageNodeRunner extends Thread {
 	private Socket communicationSocket;
 	private static final Object locker = new Object();
 	private static int noOfReplicasToReceive;
-	private static List<String> requestedVersions = new ArrayList<>();
+	private static List<VectorClock> requestedVersions = new ArrayList<>(); // TODO change this from String
+	private static HashMap storage = new HashMap<>();
+	private static HashMap<Integer, VectorClock> versions = new HashMap<>();
 	
 	
 	public StorageNodeRunner(StorageNode node, Socket clientSocket) {
@@ -100,13 +105,20 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
-	private void processKeyVersionRequest(Object content) throws UnknownHostException, IOException {
+	private void processKeyVersionRequest(Object content) throws Exception {
 		KeyVersionRequest req = (KeyVersionRequest)content;
 		StorageNode.logger.info("Received a KeyVersionRequest: " + req.toString());
 		
 		String key = req.getKey();
-		String reply = key + "gigelcostel";
 		
+		int keyRingPosition = Hasher.getRingPosition(key, false);
+		Integer keyRingPositionInteger = new Integer(keyRingPosition);
+		
+		if (!versions.containsKey(keyRingPositionInteger)) {
+			throw new NullPointerException("GET before PUT in a processKeyVersionRequest");
+		}
+		
+		VectorClock reply = versions.get(keyRingPositionInteger);
 		KeyVersionReply k = new KeyVersionReply(reply, this.node.getMetadata().getPort(), req.getSourcePort());
 		
 		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, req.getSourcePort());
@@ -157,8 +169,7 @@ public class StorageNodeRunner extends Thread {
 
 
 	private void processPUTCommand(Command command, String key) {
-		// TODO Auto-generated method stub
-		
+		// TODO
 	}
 
 
@@ -167,6 +178,7 @@ public class StorageNodeRunner extends Thread {
 		
 		gatherReplicasVersions(key);
 		
+		// TODO return them to the client side - replace mockup printing from below
 		System.out.println("+++++");
 		System.out.println("#<3# " + requestedVersions.toString());
 		System.out.println("+++++");
@@ -176,7 +188,14 @@ public class StorageNodeRunner extends Thread {
 
 	private void gatherReplicasVersions(String key) throws Exception {
 		requestedVersions.clear();
-		requestedVersions.add(new String("mock")); // TODO - replace mock with own version
+		
+		int keyRingPosition = Hasher.getRingPosition(key, false);
+		Integer keyRingPositionInteger = new Integer(keyRingPosition);
+		
+		if (!versions.containsKey(keyRingPositionInteger)) {
+			throw new NullPointerException("GET before PUT not allowed on Dynamo");
+		}
+		requestedVersions.add(versions.get(keyRingPositionInteger));
 		
 		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
 		for (StorageNodeMetadataCapsule s : prefList) {
