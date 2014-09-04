@@ -164,8 +164,19 @@ public class StorageNodeRunner extends Thread {
 
 	private void processGETCommand(Command command, String key) throws Exception {
 		StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
+		
+		gatherReplicasVersions(key);
+		
+		System.out.println("+++++");
+		System.out.println("#<3# " + requestedVersions.toString());
+		System.out.println("+++++");
+		
+	}
+
+
+	private void gatherReplicasVersions(String key) throws Exception {
 		requestedVersions.clear();
-		requestedVersions.add(new String("mock"));
+		requestedVersions.add(new String("mock")); // TODO - replace mock with own version
 		
 		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
 		for (StorageNodeMetadataCapsule s : prefList) {
@@ -185,10 +196,6 @@ public class StorageNodeRunner extends Thread {
 				StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
 			}
 		}
-		
-		System.out.println("+++++");
-		System.out.println("#<3# " + requestedVersions.toString());
-		System.out.println("+++++");
 		
 	}
 
