@@ -6,6 +6,7 @@ package storage;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -69,91 +70,109 @@ public class StorageNodeRunner extends Thread {
 
 	private void analyzeContent(Object content) throws Exception {
 		if (content instanceof ArrayList) {
-			StorageNode.logger.info("Load balancer sent a broadcast!");
-			this.node.allNodes = (ArrayList<StorageNodeMetadataCapsule>)content;
-			
-			Collections.sort(this.node.allNodes, new Comparator<StorageNodeMetadataCapsule>() {
-				public int compare(StorageNodeMetadataCapsule a, StorageNodeMetadataCapsule b) {
-					return Integer.valueOf(a.getPosition()).compareTo(Integer.valueOf(b.getPosition()));
-				}
-			});
-			
-			StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());		
+			processMetadata(content);
 		}
 		else if (content instanceof Command) {
-			StorageNode.logger.info("Received a (forwarded) Command from (load balancer) another node");
-			
-			Command commandContent = (Command)content;
-			String key = commandContent.getMessage();
-			
-			if (this.node.patternityTest(key)) {
-				StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
-				requestedVersions.clear();
-				requestedVersions.add(new String("mock"));
-				
-				List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
-				for (StorageNodeMetadataCapsule s : prefList) {
-					if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
-						KeyVersionRequest k = new KeyVersionRequest(key, this.node.getMetadata().getPort(), s.getPort());
-						Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
-						mailMan.composeMail(new TaskCapsule(k));
-						mailMan.sendMail();
-					}
-				}
-				
-				synchronized (locker) {
-					try {
-						noOfReplicasToReceive = Constants.DYNAMO_R;
-						locker.wait();
-					} catch (InterruptedException e) {
-						StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
-					}
-				}
-				
-				System.out.println("+++++");
-				System.out.println("#<3# " + requestedVersions.toString());
-				System.out.println("+++++");
-			}
-			else {
-				StorageNode.logger.info("I will forward it to its right owner.");
-				StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
-				
-				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
-				mailMan.composeMail(new TaskCapsule(commandContent));
-				mailMan.sendMail();
-				
-				StorageNode.logger.info("Task forwarded to " + coordinator.toString());
-			}
+			processCommand(content);
 		}
 		else if (content instanceof KeyVersionRequest) {
-			KeyVersionRequest req = (KeyVersionRequest)content;
-			StorageNode.logger.info("Received a KeyVersionRequest: " + req.toString());
-			
-			String key = req.getKey();
-			String reply = key + "gigelcostel";
-			
-			KeyVersionReply k = new KeyVersionReply(reply, this.node.getMetadata().getPort(), req.getSourcePort());
-			
-			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, req.getSourcePort());
-			mailMan.composeMail(new TaskCapsule(k));
-			mailMan.sendMail();
-			
-			StorageNode.logger.info("Replied a KeyVersionReply to port " + req.getSourcePort());
+			processKeyVersionRequest(content);
 		}
 		else if (content instanceof KeyVersionReply) {
-			KeyVersionReply receivedAnswer = (KeyVersionReply)content;
-			StorageNode.logger.info("Received a KeyVersionReply " + receivedAnswer.toString() + " from port" + receivedAnswer.getSourcePort());
+			processKeyVersionReply(content);
+		}
+	}
+
+
+	private void processKeyVersionReply(Object content) {
+		KeyVersionReply receivedAnswer = (KeyVersionReply)content;
+		StorageNode.logger.info("Received a KeyVersionReply " + receivedAnswer.toString() + " from port" + receivedAnswer.getSourcePort());
+		
+		requestedVersions.add(receivedAnswer.getReply());
+		
+		synchronized (locker) {
+			noOfReplicasToReceive--;
+			if (noOfReplicasToReceive == 0) {
+				locker.notify();
+			}
+		}		
+	}
+
+
+	private void processKeyVersionRequest(Object content) throws UnknownHostException, IOException {
+		KeyVersionRequest req = (KeyVersionRequest)content;
+		StorageNode.logger.info("Received a KeyVersionRequest: " + req.toString());
+		
+		String key = req.getKey();
+		String reply = key + "gigelcostel";
+		
+		KeyVersionReply k = new KeyVersionReply(reply, this.node.getMetadata().getPort(), req.getSourcePort());
+		
+		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, req.getSourcePort());
+		mailMan.composeMail(new TaskCapsule(k));
+		mailMan.sendMail();
+		
+		StorageNode.logger.info("Replied a KeyVersionReply to port " + req.getSourcePort());
+	}
+
+
+	private void processCommand(Object content) throws UnknownHostException, IOException, Exception {
+		StorageNode.logger.info("Received a (forwarded) Command from (load balancer) another node");
+		
+		Command commandContent = (Command)content;
+		String key = commandContent.getMessage();
+		
+		if (this.node.patternityTest(key)) {
+			StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
+			requestedVersions.clear();
+			requestedVersions.add(new String("mock"));
 			
-			requestedVersions.add(receivedAnswer.getReply());
-			
-			synchronized (locker) {
-				noOfReplicasToReceive--;
-				if (noOfReplicasToReceive == 0) {
-					locker.notify();
+			List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
+			for (StorageNodeMetadataCapsule s : prefList) {
+				if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
+					KeyVersionRequest k = new KeyVersionRequest(key, this.node.getMetadata().getPort(), s.getPort());
+					Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
+					mailMan.composeMail(new TaskCapsule(k));
+					mailMan.sendMail();
 				}
 			}
 			
+			synchronized (locker) {
+				try {
+					noOfReplicasToReceive = Constants.DYNAMO_R;
+					locker.wait();
+				} catch (InterruptedException e) {
+					StorageNode.logger.log(Level.SEVERE, e.getMessage(), e);
+				}
+			}
 			
+			System.out.println("+++++");
+			System.out.println("#<3# " + requestedVersions.toString());
+			System.out.println("+++++");
 		}
+		else {
+			StorageNode.logger.info("I will forward it to its right owner.");
+			StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
+			
+			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, coordinator.getPort());
+			mailMan.composeMail(new TaskCapsule(commandContent));
+			mailMan.sendMail();
+			
+			StorageNode.logger.info("Task forwarded to " + coordinator.toString());
+		}	
+	}
+
+
+	private void processMetadata(Object content) {
+		StorageNode.logger.info("Load balancer sent a broadcast!");
+		this.node.allNodes = (ArrayList<StorageNodeMetadataCapsule>)content;
+		
+		Collections.sort(this.node.allNodes, new Comparator<StorageNodeMetadataCapsule>() {
+			public int compare(StorageNodeMetadataCapsule a, StorageNodeMetadataCapsule b) {
+				return Integer.valueOf(a.getPosition()).compareTo(Integer.valueOf(b.getPosition()));
+			}
+		});
+		
+		StorageNode.logger.info("Sorted out my nodes: " + this.node.allNodes.toString());
 	}
 }
