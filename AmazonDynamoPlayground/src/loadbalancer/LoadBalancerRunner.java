@@ -1,6 +1,8 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
+
 package loadbalancer;
 
 import java.io.IOException;

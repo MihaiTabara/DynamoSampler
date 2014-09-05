@@ -1,5 +1,6 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
 package environment;
 

@@ -1,5 +1,6 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
 package client;
 
@@ -12,10 +13,15 @@ import environment.TaskCapsule;
 
 /**
  * @author mtabara
- *
+ * The client server side thread - each for each connection
+ * the server accepts on its port.
  */
 public class ClientServerSideRunner extends Thread {
 
+	/**
+	 * The communication socket between the server and 
+	 * any of the communicating storage nodes
+	 */
 	private Socket communicationSocket;
 	
 	public ClientServerSideRunner(Socket clientSocket) {
@@ -44,6 +50,11 @@ public class ClientServerSideRunner extends Thread {
 		}
 	}
 
+	/**
+	 * Method to analyze the content. In this case, fairly simple,
+	 * the server accepts only GET answers from storage nodes, thus
+	 * only strings
+	 */
 	private void analyzeContent(Object content) {
 		if (content instanceof String) {
 			String ret = (String)content;

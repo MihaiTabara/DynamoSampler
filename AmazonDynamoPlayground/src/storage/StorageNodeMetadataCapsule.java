@@ -1,6 +1,8 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
+
 package storage;
 
 import java.io.Serializable;

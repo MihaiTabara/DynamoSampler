@@ -1,13 +1,12 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
 package client;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 
 import environment.Command;
 import environment.Constants;
@@ -17,12 +16,22 @@ import environment.Command.Type;
 
 /**
  * @author mtabara
- *
+ * Base class to interact with the user console
  */
 public class Client {
 
+	/**
+	 * The port for the running client server
+	 */
 	private int serverRunningPort;
+	/**
+	 * Global static locker to be used between client and client server side
+	 * to sync up the GET calls
+	 */
 	public static final Object locker = new Object();
+	/**
+	 * Global static string to use between client and client server side
+	 */
 	public static String resultOfGET;
 	
 	public int getServerRunningPort() {
@@ -33,6 +42,9 @@ public class Client {
 		serverRunningPort = port;
 	}
 	
+	/**
+	 * Where the whole communication with user takes place
+	 */
 	private void readFromConsole() {
 		System.out.print("[usage] GET/PUT key [value] \n");
 	    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));

@@ -1,6 +1,8 @@
 /**
- * 
+ * Mihai Tabara
+ * tabara.mihai@gmail.com
  */
+
 package environment;
 
 import java.io.IOException;
