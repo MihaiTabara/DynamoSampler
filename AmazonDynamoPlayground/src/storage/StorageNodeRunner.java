@@ -280,7 +280,12 @@ public class StorageNodeRunner extends Thread {
 			ret = (String) storage.get(keyRingPosition);
 		}
 		
-		System.out.println("^^^^^^ " + ret);
+		StorageNode.logger.info("The GET result is " + ret);
+		
+		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, command.getSourcePort());
+		mailMan.composeMail(new TaskCapsule(ret));
+		mailMan.sendMail();
+		StorageNode.logger.info("Sent the GET result to client!");
 	}
 
 

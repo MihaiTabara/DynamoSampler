@@ -41,6 +41,10 @@ public class TaskCapsule implements Serializable {
 		this.content = replica;
 	}
 
+	public TaskCapsule(String ret) {
+		this.content = ret;
+	}
+
 	public Object getContent() {
 		return content;
 	}
