@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -24,6 +23,7 @@ import environment.KeyVersionReply;
 import environment.KeyVersionRequest;
 import environment.Mailman;
 import environment.NodeCounterTuple;
+import environment.ReplicateCommand;
 import environment.TaskCapsule;
 import environment.VectorClock;
 
@@ -36,7 +36,8 @@ public class StorageNodeRunner extends Thread {
 	private Socket communicationSocket;
 	private static final Object locker = new Object();
 	private static int noOfReplicasToReceive;
-	private static List<VectorClock> requestedVersions = new ArrayList<>(); // TODO change this from String
+	private static List<VectorClock> requestedVersions = new ArrayList<>(); 
+	@SuppressWarnings("rawtypes")
 	private static HashMap storage = new HashMap<>();
 	private static HashMap<Integer, VectorClock> versions = new HashMap<>();
 	
@@ -89,6 +90,30 @@ public class StorageNodeRunner extends Thread {
 		else if (content instanceof KeyVersionReply) {
 			processKeyVersionReply(content);
 		}
+		else if (content instanceof ReplicateCommand) {
+			processReplica(content);
+		}
+	}
+
+
+	@SuppressWarnings("unchecked")
+	private void processReplica(Object content) {
+		ReplicateCommand replica = (ReplicateCommand)content;
+		StorageNode.logger.info("Received a Replica" + replica.toString());
+		
+		VectorClock updatedVC = replica.getReplicaVC();
+		int keyRingPosition = replica.getKeyRingPosition();
+		Integer keyRingPositionInteger = new Integer(keyRingPosition);
+		String newValue = updatedVC.getValue();
+		
+		updatedVC.update(this.node.getMetadata().getNodeName(), newValue);
+		
+		storage.put(keyRingPosition, newValue);
+		versions.put(keyRingPositionInteger, updatedVC);
+		StorageNode.logger.info("Updated all my storages with the REPLICATE results");
+		
+		System.out.println("...___ storage " + storage.toString());
+		System.out.println("...___ versions " + versions.toString());
 	}
 
 
@@ -170,6 +195,7 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private void processPUTCommand(Command command, String key) throws Exception {
 		StorageNode.logger.info("Received PUT command!");
 		StorageNode.logger.info("First, gather the other replicas from around");
@@ -183,13 +209,24 @@ public class StorageNodeRunner extends Thread {
 		String newValue = command.getValue();
 		VectorClock context = mergeVectorClocks(tmpVersions);
 		context.update(this.node.getMetadata().getNodeName(), newValue);
+		
 		storage.put(keyRingPosition, newValue);
 		versions.put(keyRingPositionInteger, context);
 		
 		System.out.println("+++___ context " + context.toString());
 		System.out.println("+++___ storage " + storage.toString());
 		System.out.println("+++___ versions " + versions.toString());
-		// TODO send replica with current VC (last line ^)
+		
+		StorageNode.logger.info("Sending REPLICATE command to all other nodes from preference list");
+		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
+		for (StorageNodeMetadataCapsule s : prefList) {
+			if (!s.getNodeName().equals(this.node.getMetadata().getNodeName())) {
+				ReplicateCommand replica = new ReplicateCommand(keyRingPosition, versions.get(keyRingPositionInteger));
+				Mailman mailMan = new Mailman(Constants.GENERIC_HOST, s.getPort());
+				mailMan.composeMail(new TaskCapsule(replica));
+				mailMan.sendMail();
+			}
+		}
 		
 	}
 
@@ -268,6 +305,7 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	@SuppressWarnings("unchecked")
 	private void processMetadata(Object content) {
 		StorageNode.logger.info("Load balancer sent a broadcast!");
 		this.node.allNodes = (ArrayList<StorageNodeMetadataCapsule>)content;

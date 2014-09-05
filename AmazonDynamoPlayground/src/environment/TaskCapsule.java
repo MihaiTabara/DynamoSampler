@@ -37,6 +37,10 @@ public class TaskCapsule implements Serializable {
 		this.content = keyVersionReply;
 	}
 
+	public TaskCapsule(ReplicateCommand replica) {
+		this.content = replica;
+	}
+
 	public Object getContent() {
 		return content;
 	}
