@@ -1,19 +1,19 @@
 package environment;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class TestClass {
 
 	private HashMap<Integer, String> h = new HashMap<>();
 	
 	public void test() {
-		Integer x = new Integer(5);
-		h.put(x, "cinci");
+		HashSet<String> h = new HashSet<>();
+		h.add(new String(""));
+		h.add(new String(""));
+		h.add(new String("x"));
 		
-		System.out.println(h.containsKey(x));
-		
-		Integer y = new Integer(6);
-		System.out.println(h.containsKey(y));		
+		System.out.println(h.size());
 	}
 	
 	public static void main(String[] args) {

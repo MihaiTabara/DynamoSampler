@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -112,8 +113,8 @@ public class StorageNodeRunner extends Thread {
 		versions.put(keyRingPositionInteger, updatedVC);
 		StorageNode.logger.info("Updated all my storages with the REPLICATE results");
 		
-		System.out.println("...___ storage " + storage.toString());
-		System.out.println("...___ versions " + versions.toString());
+		StorageNode.logger.info("...___ storage " + storage.toString());
+		StorageNode.logger.info("...___ versions " + versions.toString());
 	}
 
 
@@ -199,6 +200,7 @@ public class StorageNodeRunner extends Thread {
 	private void processPUTCommand(Command command, String key) throws Exception {
 		StorageNode.logger.info("Received PUT command!");
 		StorageNode.logger.info("First, gather the other replicas from around");
+		
 		gatherReplicasVersions(key);
 		
 		List<VectorClock> tmpVersions = new ArrayList<>(requestedVersions);
@@ -206,6 +208,7 @@ public class StorageNodeRunner extends Thread {
 		Integer keyRingPositionInteger = new Integer(keyRingPosition);
 		
 		StorageNode.logger.info("Prepare to merge them and update my storage gear.");
+		
 		String newValue = command.getValue();
 		VectorClock context = mergeVectorClocks(tmpVersions);
 		context.update(this.node.getMetadata().getNodeName(), newValue);
@@ -213,9 +216,9 @@ public class StorageNodeRunner extends Thread {
 		storage.put(keyRingPosition, newValue);
 		versions.put(keyRingPositionInteger, context);
 		
-		System.out.println("+++___ context " + context.toString());
-		System.out.println("+++___ storage " + storage.toString());
-		System.out.println("+++___ versions " + versions.toString());
+		StorageNode.logger.info("+++___ context " + context.toString());
+		StorageNode.logger.info("+++___ storage " + storage.toString());
+		StorageNode.logger.info("+++___ versions " + versions.toString());
 		
 		StorageNode.logger.info("Sending REPLICATE command to all other nodes from preference list");
 		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
@@ -264,11 +267,33 @@ public class StorageNodeRunner extends Thread {
 		
 		gatherReplicasVersions(key);
 		
-		// TODO return them to the client side - replace mockup printing from below
-		System.out.println("+++++");
-		System.out.println("#<3# " + requestedVersions.toString());
-		System.out.println("+++++");
+		StorageNode.logger.info("Prepare to check the other replicas.");
+		List<VectorClock> tmpVersions = new ArrayList<>(requestedVersions);
+		int keyRingPosition = Hasher.getRingPosition(key, false);
 		
+		boolean differentValuesAmongReplicas = checkReplicas(tmpVersions);
+		String ret;
+		if (differentValuesAmongReplicas) {
+			ret = (String)tmpVersions.toString(); 
+		}
+		else {
+			ret = (String) storage.get(keyRingPosition);
+		}
+		
+		System.out.println("^^^^^^ " + ret);
+	}
+
+
+	private boolean checkReplicas(List<VectorClock> tmpVersions) {
+		HashSet<String> set = new HashSet<>();
+		for (VectorClock clock : tmpVersions) {
+			set.add(clock.getValue());
+		}
+		
+		if (set.size() > 1)
+			return true;
+		
+		return false;
 	}
 
 
