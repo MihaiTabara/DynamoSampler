@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 
@@ -22,6 +23,7 @@ import environment.Hasher;
 import environment.KeyVersionReply;
 import environment.KeyVersionRequest;
 import environment.Mailman;
+import environment.NodeCounterTuple;
 import environment.TaskCapsule;
 import environment.VectorClock;
 
@@ -115,7 +117,7 @@ public class StorageNodeRunner extends Thread {
 		Integer keyRingPositionInteger = new Integer(keyRingPosition);
 		
 		if (!versions.containsKey(keyRingPositionInteger)) {
-			throw new NullPointerException("GET before PUT in a processKeyVersionRequest");
+			versions.put(keyRingPositionInteger, new VectorClock());
 		}
 		
 		VectorClock reply = versions.get(keyRingPositionInteger);
@@ -168,8 +170,55 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
-	private void processPUTCommand(Command command, String key) {
-		// TODO
+	private void processPUTCommand(Command command, String key) throws Exception {
+		StorageNode.logger.info("Received PUT command!");
+		StorageNode.logger.info("First, gather the other replicas from around");
+		gatherReplicasVersions(key);
+		
+		List<VectorClock> tmpVersions = new ArrayList<>(requestedVersions);
+		int keyRingPosition = Hasher.getRingPosition(key, false);
+		Integer keyRingPositionInteger = new Integer(keyRingPosition);
+		
+		StorageNode.logger.info("Prepare to merge them and update my storage gear.");
+		String newValue = command.getValue();
+		VectorClock context = mergeVectorClocks(tmpVersions);
+		context.update(this.node.getMetadata().getNodeName(), newValue);
+		storage.put(keyRingPosition, newValue);
+		versions.put(keyRingPositionInteger, context);
+		
+		System.out.println("+++___ context " + context.toString());
+		System.out.println("+++___ storage " + storage.toString());
+		System.out.println("+++___ versions " + versions.toString());
+		// TODO send replica with current VC (last line ^)
+		
+	}
+
+
+	private VectorClock mergeVectorClocks(List<VectorClock> tmpVersions) {
+		VectorClock ret = new VectorClock();
+		HashMap<String, Integer> reducer = new HashMap<>();
+		
+		for (VectorClock vc : tmpVersions) {
+			if (vc.getValue() == "") {
+				continue;
+			}
+			
+			for (NodeCounterTuple clock : vc.getClocks()) {
+				String nodename = clock.getNodeName();
+				Integer counter = new Integer(clock.getCounter());
+				
+				if (reducer.containsKey(nodename) && reducer.get(nodename) >= counter) {
+					continue;
+				}
+				reducer.put(nodename, counter);
+			}
+		}
+		
+		for (String k : reducer.keySet() ) {
+			ret.getClocks().add(new NodeCounterTuple(k, reducer.get(k)));
+		}
+		
+		return ret;
 	}
 
 
@@ -193,7 +242,7 @@ public class StorageNodeRunner extends Thread {
 		Integer keyRingPositionInteger = new Integer(keyRingPosition);
 		
 		if (!versions.containsKey(keyRingPositionInteger)) {
-			throw new NullPointerException("GET before PUT not allowed on Dynamo");
+			versions.put(keyRingPositionInteger, new VectorClock());
 		}
 		requestedVersions.add(versions.get(keyRingPositionInteger));
 		

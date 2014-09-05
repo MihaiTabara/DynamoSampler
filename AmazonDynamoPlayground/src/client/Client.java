@@ -28,7 +28,7 @@ public class Client {
 			
 			System.out.println("Sending my first GET key over the network!");
 			
-			Command command = new Command(Type.GET, "firstKeyToSend");
+			Command command = new Command(Type.PUT, "firstKeyToSend", "computer");
 			command.setCoordinates(0, Constants.LOAD_BALANCER_RUNNING_PORT);
 			
 			Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);

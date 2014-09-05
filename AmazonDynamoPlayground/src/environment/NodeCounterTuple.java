@@ -3,13 +3,15 @@
  */
 package environment;
 
+import java.io.Serializable;
+
 /**
  * @author mtabara
  *
  */
-public class NodeCounterTuple {
+public class NodeCounterTuple implements Serializable {
 
-	
+	private static final long serialVersionUID = 1L;
 	private String nodeName;
 	private int counter;
 	
