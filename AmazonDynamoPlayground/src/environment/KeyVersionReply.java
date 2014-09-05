@@ -8,13 +8,24 @@ import java.io.Serializable;
 
 /**
  * @author mtabara
- *
+ * KeyVersionReply represents the Serializable type of object
+ * send between the storage nodes to exchange the Vector Clocks
+ * before returning a GET call.
  */
 public class KeyVersionReply implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	/**
+	 * The current Vector Clock to be exchanged
+	 */
 	private VectorClock reply;
+	/**
+	 * Source port of the sender
+	 */
 	private int sourcePort;
+	/**
+	 * Destination port of the receiver
+	 */
 	private int destinationPort;
 	
 	/**
@@ -70,9 +81,6 @@ public class KeyVersionReply implements Serializable {
 		this.destinationPort = destinationPort;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "KeyVersionReply [reply=" + reply.toString() + ", sourcePort=" + sourcePort

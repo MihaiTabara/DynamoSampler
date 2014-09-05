@@ -12,12 +12,25 @@ import java.net.UnknownHostException;
 
 /**
  * @author mtabara
- *
+ * Abstract class to encapsulate the mailing mechanism. 
+ * It specifies the destination socket identified by the
+ * host and port but also the mail content. The class 
+ * is used in this way to separate the actual transmission
+ * job from the other ongoing implied tasks along the way
  */
 public abstract class MailBox {
 
+	/**
+	 * Host of the destination
+	 */
 	protected String host;
+	/**
+	 * Running port of the destination
+	 */
 	protected int port;
+	/**
+	 * The message content to be send
+	 */
 	protected TaskCapsule mailContent;
 	
 	abstract public void composeMail(TaskCapsule content);
@@ -27,6 +40,12 @@ public abstract class MailBox {
 		this.port = port;
 	}
 	
+	/**
+	 * The method that opens the connection to the destination
+	 * socket, writes content and closes the connection afterwards
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	public void sendMail() throws UnknownHostException, IOException {
 		Socket destinationSocket = openDestinationSocket();
 		ObjectOutputStream destinationBlackboard = getDestinationBlackboard(destinationSocket);

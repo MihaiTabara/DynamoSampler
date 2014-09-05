@@ -32,16 +32,42 @@ import environment.VectorClock;
 
 /**
  * @author mtabara
- *
+ * The Storage node runner describes the behavior of the Storage node
+ * each time a piece of information is exchanged. 
  */
 public class StorageNodeRunner extends Thread {
+	/**
+	 * A reference to the basic - process - storage node (where all the metadata is 
+	 * being store)
+	 */
 	private StorageNode node;
+	/**
+	 * The socket where the information pops in each time a connection is established
+	 */
 	private Socket communicationSocket;
+	/**
+	 * The global locker used to sync the threads when replicas request is called into 
+	 * service
+	 */
 	private static final Object locker = new Object();
+	/**
+	 * Global variable to use with the same purpose as the aforementioned locker object
+	 */
 	private static int noOfReplicasToReceive;
+	/**
+	 * Variable to store all the vector clocks received from the other nodes 
+	 * in the preference list for a specific key, assumed that the current storage 
+	 * node is the coordinator
+	 */
 	private static List<VectorClock> requestedVersions = new ArrayList<>(); 
+	/**
+	 * The actual key-value storage used
+	 */
 	@SuppressWarnings("rawtypes")
 	private static HashMap storage = new HashMap<>();
+	/**
+	 * The Vector-clock retaining data-structure
+	 */
 	private static HashMap<Integer, VectorClock> versions = new HashMap<>();
 	
 	
@@ -51,9 +77,6 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
-	/* (non-Javadoc)
-	 * @see java.lang.Thread#run()
-	 */
 	@Override
 	public void run() {
 		try {
@@ -80,6 +103,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method which classifies the behavior of the storage node 
+	 * depending on the content received
+	 * @param content
+	 * @throws Exception
+	 */
 	private void analyzeContent(Object content) throws Exception {
 		if (content instanceof ArrayList) {
 			processMetadata(content);
@@ -99,6 +128,11 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a replica is received
+	 * @param content
+	 */
 	@SuppressWarnings("unchecked")
 	private void processReplica(Object content) {
 		ReplicateCommand replica = (ReplicateCommand)content;
@@ -120,6 +154,10 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a key version reply is received
+	 */
 	private void processKeyVersionReply(Object content) {
 		KeyVersionReply receivedAnswer = (KeyVersionReply)content;
 		StorageNode.logger.info("Received a KeyVersionReply " + receivedAnswer.toString() + " from port" + receivedAnswer.getSourcePort());
@@ -135,6 +173,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a key version request is received
+	 * @param content
+	 * @throws Exception
+	 */
 	private void processKeyVersionRequest(Object content) throws Exception {
 		KeyVersionRequest req = (KeyVersionRequest)content;
 		StorageNode.logger.info("Received a KeyVersionRequest: " + req.toString());
@@ -159,6 +203,15 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a new command arrives - it either processes it or it forwards it
+	 * to the right owner
+	 * @param content
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 * @throws Exception
+	 */
 	private void processCommand(Object content) throws UnknownHostException, IOException, Exception {
 		StorageNode.logger.info("Received a (forwarded) Command from (load balancer) another node");
 		
@@ -174,6 +227,13 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The forward method if the storage node is not among the preference list nodes 
+	 * for a specific key
+	 * @param command
+	 * @param key
+	 * @throws Exception
+	 */
 	private void forwardCapsule(Command command, String key) throws Exception {
 		StorageNode.logger.info("I will forward it to its right owner.");
 		StorageNodeMetadataCapsule coordinator = this.node.getKeyCoordinator(key);
@@ -186,6 +246,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method to take into account the different operations that are possible
+	 * @param command
+	 * @param key
+	 * @throws Exception
+	 */
 	private void handleCommand(Command command, String key) throws Exception {
 		Type cmdType = command.getType();
 		
@@ -198,6 +264,13 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a PUT command is received
+	 * @param command
+	 * @param key
+	 * @throws Exception
+	 */
 	@SuppressWarnings("unchecked")
 	private void processPUTCommand(Command command, String key) throws Exception {
 		StorageNode.logger.info("Received PUT command!");
@@ -236,6 +309,13 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method describes the behavior of the storage node
+	 * after it receives all the key version reply and merges them
+	 * to get a proper answer
+	 * @param tmpVersions
+	 * @return
+	 */
 	private VectorClock mergeVectorClocks(List<VectorClock> tmpVersions) {
 		VectorClock ret = new VectorClock();
 		HashMap<String, Integer> reducer = new HashMap<>();
@@ -263,7 +343,13 @@ public class StorageNodeRunner extends Thread {
 		return ret;
 	}
 
-
+	/**
+	 * The method is to describe the storage node's behavior each time
+	 * a GET command is received
+	 * @param command
+	 * @param key
+	 * @throws Exception
+	 */
 	private void processGETCommand(Command command, String key) throws Exception {
 		StorageNode.logger.info("I am part of the preference list for key <" + key + ">");
 		
@@ -292,6 +378,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method is to describe what a storage node does after gathering 
+	 * multiple replica versions from the other nodes in the preference list
+	 * @param tmpVersions
+	 * @return
+	 */
 	private boolean checkReplicas(List<VectorClock> tmpVersions) {
 		HashSet<String> set = new HashSet<>();
 		for (VectorClock clock : tmpVersions) {
@@ -305,6 +397,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * Common method used by both the GET and PUT command to gather replicas versions
+	 * from the other nodes in the preference list
+	 * @param key
+	 * @throws Exception
+	 */
 	private void gatherReplicasVersions(String key) throws Exception {
 		requestedVersions.clear();
 		
@@ -338,6 +436,12 @@ public class StorageNodeRunner extends Thread {
 	}
 
 
+	/**
+	 * The method to describe the behavior of the storage node each time
+	 * it receives new information about the other storage nodes from the
+	 * load balancer
+	 * @param content
+	 */
 	@SuppressWarnings("unchecked")
 	private void processMetadata(Object content) {
 		StorageNode.logger.info("Load balancer sent a broadcast!");

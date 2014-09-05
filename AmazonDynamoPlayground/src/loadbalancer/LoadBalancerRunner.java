@@ -19,10 +19,19 @@ import environment.TaskCapsule;
 
 /**
  * @author mtabara
- *
+ * The LB runner describes what is to happen each time a new connection
+ * is established between entities in the Amazon system
  */
 public class LoadBalancerRunner extends Thread {
+	/**
+	 *  Reference to the Load Balancer object (where all the metadata
+	 *  is stored)
+	 */
 	private LoadBalancer loadBalancer;
+	/**
+	 *  The socket where the information is exchanged 
+	 *  with the new connections
+	 */
 	private Socket communicationSocket;
 	
 	public LoadBalancerRunner(LoadBalancer loadBalancer, Socket clientSocket) {
@@ -57,6 +66,13 @@ public class LoadBalancerRunner extends Thread {
 			
 	}
 
+	/**
+	 * The method describes the behaviour according to the incoming
+	 * message that arrives
+	 * @param content
+	 * @throws UnknownHostException
+	 * @throws IOException
+	 */
 	private void analyzeContent(Object content) throws UnknownHostException, IOException {
 		if (content instanceof StorageNodeMetadataCapsule) {
 			LoadBalancer.logger.info("A new Storage node requested to join the ring.");

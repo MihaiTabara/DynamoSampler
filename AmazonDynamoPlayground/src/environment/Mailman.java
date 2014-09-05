@@ -9,7 +9,9 @@ import environment.TaskCapsule;
 
 /**
  * @author mtabara
- *
+ * This class inherits the primitives specified in the MailBox
+ * and wraps around them in a usable form by all classes, objects 
+ * and entities in the project
  */
 public class Mailman extends MailBox {
 
@@ -21,9 +23,6 @@ public class Mailman extends MailBox {
 		super(host, port);
 	}
 
-	/* (non-Javadoc)
-	 * @see environment.MailBox#setTaskCapsule(environment.TaskCapsule)
-	 */
 	@Override
 	public void composeMail(TaskCapsule content) {
 		this.mailContent = content;

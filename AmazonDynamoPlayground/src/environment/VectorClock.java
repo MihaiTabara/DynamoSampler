@@ -10,12 +10,19 @@ import java.util.List;
 
 /**
  * @author mtabara
- *
+ * The Vector Clock class encapsulates all the information a
+ * storage node keeps about a specific key
  */
 public class VectorClock implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	/**
+	 * The current value for the key
+	 */
 	private String value;
+	/**
+	 * The vector of the (nodename, counter) pairs
+	 */
 	private List<NodeCounterTuple> clocks = new ArrayList<>();
 	
 	public VectorClock() {
@@ -64,9 +71,7 @@ public class VectorClock implements Serializable {
 		
 		this.value = value;
 	}
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
+
 	@Override
 	public String toString() {
 		return "VectorClock [value=" + value + ", clocks=" + clocks + "]";

@@ -9,7 +9,7 @@ import java.io.Serializable;
 
 /**
  * @author mtabara
- * Class to describe how the metadata looks like
+ * Class to describe how the metadata looks like for a storage node
  */
 public class StorageNodeMetadataCapsule implements Serializable{
 
@@ -79,9 +79,6 @@ public class StorageNodeMetadataCapsule implements Serializable{
 		this.position = position;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "StorageNodeMetadataCapsule [nodeName=" + nodeName + ", port="

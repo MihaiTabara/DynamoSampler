@@ -23,7 +23,9 @@ import environment.Utilities;
 
 /**
  * @author mtabara
- *
+ * The main class that describes the behavior and design of a Storage node.
+ * The storage nodes communicate between themselves to ensure data replication, 
+ * versioning, failure safety, etc.
  */
 public class StorageNode {
 
@@ -31,8 +33,19 @@ public class StorageNode {
 	 * @param args
 	 */
 	
+	/**
+	 * All the metadata that is kept about a storage node
+	 */
 	private StorageNodeMetadataCapsule metadata;
+	/**
+	 * The socket that ensures communication
+	 */
 	private ServerSocket nodeServerSocket;
+	/**
+	 * All metadata about the other storage nodes. This attribute
+	 * is refreshed by the load balancer each time new nodes arrive
+	 * in the bucket
+	 */
 	public List<StorageNodeMetadataCapsule> allNodes;
 	
 	public static final Logger logger = Logger.getLogger(StorageNode.class.getName());
@@ -72,6 +85,13 @@ public class StorageNode {
 		this.metadata = metadata;
 	}
 
+	/**
+	 * Based on the key, its key ring position is computed and all the
+	 * corresponding storage nodes associated within the ring are returned.
+	 * @param key
+	 * @return
+	 * @throws Exception
+	 */
 	public List<StorageNodeMetadataCapsule> getPreferenceListForAKey(String key) throws Exception {
 		List<StorageNodeMetadataCapsule> preferenceList = new ArrayList<>();
 		int keyRingPosition = Hasher.getRingPosition(key, false);
@@ -99,11 +119,24 @@ public class StorageNode {
 		return preferenceList;
 	}
 	
+	/**
+	 * Out of the prefernce list, it returns the head of it
+	 * @param key
+	 * @return
+	 * @throws Exception
+	 */
 	public StorageNodeMetadataCapsule getKeyCoordinator(String key) throws Exception {
 		List <StorageNodeMetadataCapsule> prefList = this.getPreferenceListForAKey(key);
 		return prefList.get(0);
 	}
 
+	/**
+	 * Method to test if the current storage node lies in the 
+	 * preference list of a specific key
+	 * @param key
+	 * @return
+	 * @throws Exception
+	 */
 	public boolean patternityTest(String key) throws Exception {
 		List <StorageNodeMetadataCapsule> prefList = this.getPreferenceListForAKey(key);
 		

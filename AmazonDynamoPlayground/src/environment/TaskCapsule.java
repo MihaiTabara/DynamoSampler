@@ -12,11 +12,18 @@ import storage.StorageNodeMetadataCapsule;
 
 /**
  * @author mtabara
- *
+ * The generic capsule exchanged between all the threads.
+ * The way it was wrapped around all the content makes it 
+ * easier and transparent for all the entities in the project
+ * It hides out all the details about the actual type of object
+ * that is being transmitted.
  */
 public class TaskCapsule implements Serializable {
 	
 	private static final long serialVersionUID = 1L;	
+	/**
+	 * The content that's being transmitted
+	 */
 	private Object content;
 
 	public TaskCapsule(StorageNodeMetadataCapsule metadata) {

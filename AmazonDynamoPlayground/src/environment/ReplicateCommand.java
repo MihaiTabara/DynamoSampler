@@ -9,12 +9,22 @@ import java.io.Serializable;
 
 /**
  * @author mtabara
- *
+ * The Replicate Command is send over by the coordinator
+ * of a job after a successfully PUT request. This way,
+ * it ensures replication in the N-1 other nodes from the
+ * prefernce list
  */
 public class ReplicateCommand implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	/**
+	 * The (integer) key ring position - where the key 
+	 * is mapped in the consistent hashing ring
+	 */
 	private int keyRingPosition;
+	/**
+	 * The Replication Vector Clock that is being exchanged
+	 */
 	private VectorClock replicaVC;
 	
 	public ReplicateCommand(int keyRingPosition, VectorClock replica) {
@@ -50,9 +60,6 @@ public class ReplicateCommand implements Serializable {
 		this.replicaVC = replica;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "ReplicateCommand [keyRingPosition=" + keyRingPosition

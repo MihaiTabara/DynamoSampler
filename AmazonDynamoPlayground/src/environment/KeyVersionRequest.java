@@ -8,13 +8,25 @@ import java.io.Serializable;
 
 /**
  * @author mtabara
- *
+ * KeyVersionRequest represents the Serializable type of object
+ * send between the storage nodes to exchange the Vector Clocks
+ * before returning a GET call. It is used by the task coordinator 
+ * to ask for current and available replicas.
  */
 public class KeyVersionRequest implements Serializable {
 	
 	private static final long serialVersionUID = 1L;
+	/**
+	 * The key for which storage node coordinator asks about
+	 */
 	private String key;
+	/**
+	 * Sender's source port
+	 */
 	private int sourcePort;
+	/**
+	 * Receiver's port
+	 */
 	private int destinationPort;
 	
 	/**
@@ -65,9 +77,6 @@ public class KeyVersionRequest implements Serializable {
 		this.destinationPort = destinationPort;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "KeyVersionRequest [key=" + key + ", sourcePort=" + sourcePort

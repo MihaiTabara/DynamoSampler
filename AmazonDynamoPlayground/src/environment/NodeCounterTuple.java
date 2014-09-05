@@ -9,12 +9,19 @@ import java.io.Serializable;
 
 /**
  * @author mtabara
- *
+ * The (node, counter) pair basic class that describes the 
+ * atomic element in a Vector Clock used for versioning
  */
 public class NodeCounterTuple implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+	/**
+	 * node identifier 
+	 */
 	private String nodeName;
+	/**
+	 * counter used
+	 */
 	private int counter;
 	
 	/**
@@ -56,9 +63,6 @@ public class NodeCounterTuple implements Serializable {
 		this.counter++;
 	}
 
-	/* (non-Javadoc)
-	 * @see java.lang.Object#toString()
-	 */
 	@Override
 	public String toString() {
 		return "NodeCounterTuple [nodeName=" + nodeName + ", counter="

@@ -21,12 +21,27 @@ import environment.Constants;
 
 /**
  * @author mtabara
- *
+ * The Load Balancer base class to describe its specification
+ * It behaves in the natural way, as a wall for all the incoming
+ * request that arrive from the user. It randomly chooses a storage
+ * node and forwards the information towards it. The only information
+ * that it keeps is the metadata about the nodes, so that is ensures a 
+ * transparent traffic-control information - each time a storage node
+ * is added/removed from the ring.
  */
 public class LoadBalancer {
 
+	/**
+	 * the socket where the load balancer listens for connections
+	 */
 	private static ServerSocket serverSocket;
+	/**
+	 * The running port - hard-coded in the Constants file
+	 */
 	private int port = Constants.LOAD_BALANCER_RUNNING_PORT;
+	/**
+	 * The metadata kept about the storage nodes
+	 */
 	public List<StorageNodeMetadataCapsule> storageNodesMetadata = new ArrayList<>();
 	
 	public static final Logger logger = Logger.getLogger(LoadBalancer.class.getName());
@@ -40,6 +55,11 @@ public class LoadBalancer {
 		}
 	}
 	
+	/**
+	 * Each time the LB receives a package, it randomly shuffles the 
+	 * current storage nodes bucket and forwards it to one lucky
+	 * winner
+	 */
 	public StorageNodeMetadataCapsule getRandomStorageNode() {
 		Collections.shuffle(this.storageNodesMetadata);
 		return this.storageNodesMetadata.get(0);
