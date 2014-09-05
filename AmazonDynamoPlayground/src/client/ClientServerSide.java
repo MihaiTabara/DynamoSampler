@@ -9,6 +9,8 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import environment.Constants;
+
 
 /**
  * @author mtabara
@@ -29,7 +31,7 @@ public class ClientServerSide implements Runnable {
 	@Override
 	public void run() {
 		try {
-			serverSocket = new ServerSocket(0);
+			serverSocket = new ServerSocket(Constants.CLIENT_RUNNING_PORT);
 			clientServerSideRunningPort = serverSocket.getLocalPort();
 			logger.info("Client server side waiting connections on " + clientServerSideRunningPort + "port ...");
 		} catch (IOException e) {

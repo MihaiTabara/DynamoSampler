@@ -281,6 +281,7 @@ public class StorageNodeRunner extends Thread {
 		}
 		
 		StorageNode.logger.info("The GET result is " + ret);
+		StorageNode.logger.info("Command message looks like this " + command.toString());
 		
 		Mailman mailMan = new Mailman(Constants.GENERIC_HOST, command.getSourcePort());
 		mailMan.composeMail(new TaskCapsule(ret));

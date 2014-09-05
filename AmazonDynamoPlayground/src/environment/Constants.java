@@ -34,6 +34,11 @@ public final class Constants {
 	public static final int LOAD_BALANCER_RUNNING_PORT = 5000;
 	
 	/**
+	 * The port where load balancer runs
+	 */
+	public static final int CLIENT_RUNNING_PORT = 5001;
+	
+	/**
 	 * The generic host to use - localhost
 	 */
 	public static final String GENERIC_HOST = "localhost";

@@ -45,7 +45,7 @@ public class Client {
 					String key = tokens[1];
 					
 					Command command = new Command(Type.GET, key);
-					command.setCoordinates(serverRunningPort, Constants.LOAD_BALANCER_RUNNING_PORT);
+					command.setCoordinates(Constants.CLIENT_RUNNING_PORT, Constants.LOAD_BALANCER_RUNNING_PORT);
 					
 					Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
 					mailMan.composeMail(new TaskCapsule(command));
@@ -58,6 +58,8 @@ public class Client {
 							e.printStackTrace();
 						}
 					}
+					
+					System.out.println(Client.resultOfGET);
 				}
 				else if (tokens[0].equals("PUT")) {
 					String key = tokens[1];

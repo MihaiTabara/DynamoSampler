@@ -25,7 +25,6 @@ public class ClientServerSideRunner extends Thread {
 	@Override
 	public void run() {
 		try {
-			ClientServerSide.logger.info("I'm a client server side runner - I'll check on what's this about ...");
 			ObjectInputStream inputStream = new ObjectInputStream(communicationSocket.getInputStream());
 			
 			try {
