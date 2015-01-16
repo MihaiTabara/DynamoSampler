@@ -7,6 +7,7 @@ package client;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 
 import environment.Command;
 import environment.Constants;
@@ -23,7 +24,7 @@ public class Client {
 	/**
 	 * The port for the running client server
 	 */
-	private int serverRunningPort;
+	public ServerSocket resourceServerSocket;
 	/**
 	 * Global static locker to be used between client and client server side
 	 * to sync up the GET calls
@@ -34,12 +35,12 @@ public class Client {
 	 */
 	public static String resultOfGET;
 	
-	public int getServerRunningPort() {
-		return serverRunningPort;
-	}
-	
-	public void setServerRunningPort(int port) {
-		serverRunningPort = port;
+	public Client() {
+		try {
+			this.resourceServerSocket = new ServerSocket(0);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -57,7 +58,7 @@ public class Client {
 					String key = tokens[1];
 					
 					Command command = new Command(Type.GET, key);
-					command.setCoordinates(Constants.CLIENT_RUNNING_PORT, Constants.LOAD_BALANCER_RUNNING_PORT);
+					command.setCoordinates(this.resourceServerSocket.getLocalPort(), Constants.LOAD_BALANCER_RUNNING_PORT);
 					
 					Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
 					mailMan.composeMail(new TaskCapsule(command));
@@ -78,7 +79,7 @@ public class Client {
 					String value = tokens[2];
 					
 					Command command = new Command(Type.PUT, key, value);
-					command.setCoordinates(serverRunningPort, Constants.LOAD_BALANCER_RUNNING_PORT);
+					command.setCoordinates(this.resourceServerSocket.getLocalPort(), Constants.LOAD_BALANCER_RUNNING_PORT);
 					
 					Mailman mailMan = new Mailman(Constants.GENERIC_HOST, Constants.LOAD_BALANCER_RUNNING_PORT);
 					mailMan.composeMail(new TaskCapsule(command));
@@ -93,9 +94,8 @@ public class Client {
 	
 	public static void main(String[] args) {
 		Client client = new Client();
-		ClientServerSide clientServerSide = new ClientServerSide();
+		Runnable clientServerSide = new ClientServerSide(client.resourceServerSocket);
 		(new Thread(clientServerSide)).start();
-		client.setServerRunningPort(clientServerSide.getRunningPort());
 		
 		client.readFromConsole();	
 	}

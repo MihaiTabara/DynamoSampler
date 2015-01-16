@@ -285,15 +285,20 @@ public class StorageNodeRunner extends Thread {
 		StorageNode.logger.info("Prepare to merge them and update my storage gear.");
 		
 		String newValue = command.getValue();
+		StorageNode.logger.info("PUT Command message looks like this " + command.toString());
+		
+		StorageNode.logger.info("Context before merge " + tmpVersions.toString());	
 		VectorClock context = mergeVectorClocks(tmpVersions);
 		context.update(this.node.getMetadata().getNodeName(), newValue);
 		
 		storage.put(keyRingPosition, newValue);
 		versions.put(keyRingPositionInteger, context);
 		
-		StorageNode.logger.info("+++___ context " + context.toString());
+		StorageNode.logger.info("Context after merge: " + context.toString());
 		StorageNode.logger.info("+++___ storage " + storage.toString());
 		StorageNode.logger.info("+++___ versions " + versions.toString());
+		
+		Thread.sleep(4000);
 		
 		StorageNode.logger.info("Sending REPLICATE command to all other nodes from preference list");
 		List<StorageNodeMetadataCapsule> prefList = this.node.getPreferenceListForAKey(key);
